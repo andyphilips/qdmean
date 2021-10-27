@@ -1,0 +1,16 @@
+v 1.0.1
+
+d Andrew Q. Philips and Soren Jordan
+d
+d Author: Andrew Q. Philips, University of Colorado Boulder
+d Author: Soren Jordan, Auburn University
+d Support: andrew.philips@colorado.edu
+d
+d
+d Requires: Stata version 8 or newer
+d
+d Distribution-Date: 10-27-2021
+d
+
+f qdmean.ado
+f qdmean.sthlp
