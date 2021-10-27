@@ -7,7 +7,7 @@ A program to automatically quasi-demean regressors following a FGLS-RE or MLE-RE
 To install **qdmean** in Stata, type the following:
 ```
 cap ado uninstall qdmean
-net install dynamac, from(https://github.com/andyphilips/REquasidemean/raw/gh-pages/Stata/src/)
+net install dynamac, from(https://github.com/andyphilips/REquasidemean/raw/main/Stata/src/)
 ```
 
 ## R
