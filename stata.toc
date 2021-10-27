@@ -1,0 +1,10 @@
+v 1.0.1
+d Andrew Q. Philips and Soren Jordan
+d
+p qdmean QDMEAN -  A program to automatically quasi-demean regressors following a FGLS-RE or MLE-RE regression.
+
+* l word-to-show path-or-url [description]
+* t: Directories within site:
+* t path [description]
+* Packages:
+* p pkgname [description]
