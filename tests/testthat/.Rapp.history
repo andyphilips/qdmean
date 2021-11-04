@@ -1,0 +1,406 @@
+qdmean <- function(model, predictor, group, data = NULL, dv = NULL) {#
+	if (!(class(model)[1] %in% c("plm", "lmerMod"))) { # if it's not plm/lmer#
+		stop("Model must be either plm or lmer")#
+	}#
+	if(class(predictor) != "character") {#
+		stop("Predictor variable must be supplied as a string")#
+	} #
+	if(class(group) != "character") {#
+		stop("Grouping variable must be supplied as a string")#
+	} 	#
+	if(class(model)[1] == "plm") { # if a plm model#
+		# generate data from the model#
+		data <- data.frame(model$model, index(model), summary(model)$ercomp$theta)#
+		names(data) <- c(names(model$model), names(index(model)), "theta")#
+		# average over the predictor, given the grouping variable (both user supplied)#
+		data$xmean <- as.numeric(ave(data[[predictor]], data[[group]],#
+			FUN = function(x) mean(x, na.rm = T)))#
+		x.full <- as.numeric(data[[predictor]])#
+		# generate x.qdmean to return#
+		x.qdmean <- x.full - data$theta*data$xmean#
+	} else if(class(model)[1] == "lmerMod") { # if it's a lmer model#
+		if(isTRUE(data == NULL)) {#
+			stop("dataframe of observations to estimate model must be supplied with lmer")#
+		}#
+		if(class(dv) != "character") {#
+			stop("Dependent variable must be supplied as a string")#
+		} #
+		if(class(dv) != "character") {#
+			stop("Dependent variable must be supplied as a string")#
+		} #
+		data.lmer <- data.frame(get(group, data), get(dv, data))#
+		for(i in 2:length(names(fixef(model.lmer)))) {#
+			data.lmer <- data.frame(data.lmer, get(names(fixef(model.lmer))[i], data))#
+		}#
+		names(data.lmer) <- c(group, dv, names(fixef(model.lmer))[2:length(names(fixef(model.lmer)))])#
+		data.lmer <- na.omit(data.lmer)#
+		data.lmer$xmean <- as.numeric(ave(data.lmer[[predictor]], data.lmer[[group]],#
+							FUN = function(x) mean(x, na.rm = T)))#
+		x.full <- as.numeric(data.lmer[[predictor]])#
+		maxT <- as.numeric(ave(data.lmer[[group]], data.lmer[[group]], FUN = function(x) length(x)))#
+		sig_u <- as.data.frame(VarCorr(model))[as.data.frame(VarCorr(model))$grp == group, "sdcor"]#
+		sig_e <- as.data.frame(VarCorr(model))[as.data.frame(VarCorr(model))$grp == "Residual", "sdcor"]#
+		theta <- 1 - sqrt(sig_e^2/(maxT*(sig_u)^2 + sig_e ^2))#
+		x.qdmean <- x.full - theta*data.lmer$xmean#
+	} #
+	# return qdemeaned x#
+	x.qdmean#
+}
+wkswork.lmer.new <- qdmean(model = model.lmer, predictor = "wks_work", group = "idcode", #
+									data = nlswork)
+model.lmer <- lmer(ln_wage ~ wks_work + union + (1 | idcode), #
+		data = nlswork)
+# #
+library(readstata13)#
+library(foreign)#
+library(plm)#
+library(lme4)#
+#
+# shipped out and saved to export with tarball#
+# data <- read.dta13("http://www.stata-press.com/data/r16/nlswork.dta")#
+# head(data)#
+# nlswork <- na.omit(data[,c("ln_wage", "idcode", "year", "wks_work", "union")])#
+# save(nlswork, file = "/Users/scj0014/Myfiles/Dropbox/Interpreting RE models/R/qdmean/data/nlswork.rda")#
+load("/Users/scj0014/Myfiles/Dropbox/Interpreting RE models/R/qdmean/data/nlswork.rda")#
+table(table(data$idcode))
+table(table(nlswork$idcode))
+model.lmer <- lmer(ln_wage ~ wks_work + union + (1 | idcode), #
+		data = nlswork)
+wkswork.lmer.new <- qdmean(model = model.lmer, predictor = "wks_work", group = "idcode", #
+									data = nlswork)
+qdmean <- function(model, predictor, group, data = NULL, dv = NULL) {#
+	if (!(class(model)[1] %in% c("plm", "lmerMod"))) { # if it's not plm/lmer#
+		stop("Model must be either plm or lmer")#
+	}#
+	if(class(predictor) != "character") {#
+		stop("Predictor variable must be supplied as a string")#
+	} #
+	if(class(group) != "character") {#
+		stop("Grouping variable must be supplied as a string")#
+	} 	#
+	if(class(model)[1] == "plm") { # if a plm model#
+		# generate data from the model#
+		data <- data.frame(model$model, index(model), summary(model)$ercomp$theta)#
+		names(data) <- c(names(model$model), names(index(model)), "theta")#
+		# average over the predictor, given the grouping variable (both user supplied)#
+		data$xmean <- as.numeric(ave(data[[predictor]], data[[group]],#
+			FUN = function(x) mean(x, na.rm = T)))#
+		x.full <- as.numeric(data[[predictor]])#
+		# generate x.qdmean to return#
+		x.qdmean <- x.full - data$theta*data$xmean#
+	} else if(class(model)[1] == "lmerMod") { # if it's a lmer model#
+		if(isTRUE(data == NULL)) {#
+			stop("dataframe of observations to estimate model must be supplied with lmer")#
+		}#
+		if(isTRUE(dv == NULL)) {#
+			stop("Dependent variable must be supplied as a string")#
+		} #
+		if(class(dv) != "character") {#
+			stop("Dependent variable must be supplied as a string")#
+		} #
+		data.lmer <- data.frame(get(group, data), get(dv, data))#
+		for(i in 2:length(names(fixef(model.lmer)))) {#
+			data.lmer <- data.frame(data.lmer, get(names(fixef(model.lmer))[i], data))#
+		}#
+		names(data.lmer) <- c(group, dv, names(fixef(model.lmer))[2:length(names(fixef(model.lmer)))])#
+		data.lmer <- na.omit(data.lmer)#
+		data.lmer$xmean <- as.numeric(ave(data.lmer[[predictor]], data.lmer[[group]],#
+							FUN = function(x) mean(x, na.rm = T)))#
+		x.full <- as.numeric(data.lmer[[predictor]])#
+		maxT <- as.numeric(ave(data.lmer[[group]], data.lmer[[group]], FUN = function(x) length(x)))#
+		sig_u <- as.data.frame(VarCorr(model))[as.data.frame(VarCorr(model))$grp == group, "sdcor"]#
+		sig_e <- as.data.frame(VarCorr(model))[as.data.frame(VarCorr(model))$grp == "Residual", "sdcor"]#
+		theta <- 1 - sqrt(sig_e^2/(maxT*(sig_u)^2 + sig_e ^2))#
+		x.qdmean <- x.full - theta*data.lmer$xmean#
+	} #
+	# return qdemeaned x#
+	x.qdmean#
+}
+wkswork.lmer.new <- qdmean(model = model.lmer, predictor = "wks_work", group = "idcode", #
+									data = nlswork)
+qdmean <- function(model, predictor, group, data = NULL, dv = NULL) {#
+	if (!(class(model)[1] %in% c("plm", "lmerMod"))) { # if it's not plm/lmer#
+		stop("Model must be either plm or lmer")#
+	}#
+	if(class(predictor) != "character") {#
+		stop("Predictor variable must be supplied as a string")#
+	} #
+	if(class(group) != "character") {#
+		stop("Grouping variable must be supplied as a string")#
+	} 	#
+	if(class(model)[1] == "plm") { # if a plm model#
+		# generate data from the model#
+		data <- data.frame(model$model, index(model), summary(model)$ercomp$theta)#
+		names(data) <- c(names(model$model), names(index(model)), "theta")#
+		# average over the predictor, given the grouping variable (both user supplied)#
+		data$xmean <- as.numeric(ave(data[[predictor]], data[[group]],#
+			FUN = function(x) mean(x, na.rm = T)))#
+		x.full <- as.numeric(data[[predictor]])#
+		# generate x.qdmean to return#
+		x.qdmean <- x.full - data$theta*data$xmean#
+	} else if(class(model)[1] == "lmerMod") { # if it's a lmer model#
+		if(isTRUE(data == NULL)) {#
+			stop("dataframe of observations to estimate model must be supplied with lmer")#
+		}#
+		if(isTRUE(dv == NULL)) {#
+			stop("Dependent variable must be supplied (as a string) with lmer")#
+		} #
+		if(class(dv) != "character") {#
+			stop("Dependent variable must be supplied as a string")#
+		} #
+		data.lmer <- data.frame(get(group, data), get(dv, data))#
+		for(i in 2:length(names(fixef(model.lmer)))) {#
+			data.lmer <- data.frame(data.lmer, get(names(fixef(model.lmer))[i], data))#
+		}#
+		names(data.lmer) <- c(group, dv, names(fixef(model.lmer))[2:length(names(fixef(model.lmer)))])#
+		data.lmer <- na.omit(data.lmer)#
+		data.lmer$xmean <- as.numeric(ave(data.lmer[[predictor]], data.lmer[[group]],#
+							FUN = function(x) mean(x, na.rm = T)))#
+		x.full <- as.numeric(data.lmer[[predictor]])#
+		maxT <- as.numeric(ave(data.lmer[[group]], data.lmer[[group]], FUN = function(x) length(x)))#
+		sig_u <- as.data.frame(VarCorr(model))[as.data.frame(VarCorr(model))$grp == group, "sdcor"]#
+		sig_e <- as.data.frame(VarCorr(model))[as.data.frame(VarCorr(model))$grp == "Residual", "sdcor"]#
+		theta <- 1 - sqrt(sig_e^2/(maxT*(sig_u)^2 + sig_e ^2))#
+		x.qdmean <- x.full - theta*data.lmer$xmean#
+	} #
+	# return qdemeaned x#
+	x.qdmean#
+}
+wkswork.lmer.new <- qdmean(model = model.lmer, predictor = "wks_work", group = "idcode", #
+									data = nlswork)
+qdmean <- function(model, predictor, group, data = list(), dv = list()) {#
+	if (!(class(model)[1] %in% c("plm", "lmerMod"))) { # if it's not plm/lmer#
+		stop("Model must be either plm or lmer")#
+	}#
+	if(class(predictor) != "character") {#
+		stop("Predictor variable must be supplied as a string")#
+	} #
+	if(class(group) != "character") {#
+		stop("Grouping variable must be supplied as a string")#
+	} 	#
+	if(class(model)[1] == "plm") { # if a plm model#
+		# generate data from the model#
+		data <- data.frame(model$model, index(model), summary(model)$ercomp$theta)#
+		names(data) <- c(names(model$model), names(index(model)), "theta")#
+		# average over the predictor, given the grouping variable (both user supplied)#
+		data$xmean <- as.numeric(ave(data[[predictor]], data[[group]],#
+			FUN = function(x) mean(x, na.rm = T)))#
+		x.full <- as.numeric(data[[predictor]])#
+		# generate x.qdmean to return#
+		x.qdmean <- x.full - data$theta*data$xmean#
+	} else if(class(model)[1] == "lmerMod") { # if it's a lmer model#
+		if(isTRUE(data == list())) {#
+			stop("dataframe of observations to estimate model must be supplied with lmer")#
+		}#
+		if(isTRUE(dv == list())) {#
+			stop("Dependent variable must be supplied (as a string) with lmer")#
+		} #
+		if(class(dv) != "character") {#
+			stop("Dependent variable must be supplied as a string")#
+		} #
+		data.lmer <- data.frame(get(group, data), get(dv, data))#
+		for(i in 2:length(names(fixef(model.lmer)))) {#
+			data.lmer <- data.frame(data.lmer, get(names(fixef(model.lmer))[i], data))#
+		}#
+		names(data.lmer) <- c(group, dv, names(fixef(model.lmer))[2:length(names(fixef(model.lmer)))])#
+		data.lmer <- na.omit(data.lmer)#
+		data.lmer$xmean <- as.numeric(ave(data.lmer[[predictor]], data.lmer[[group]],#
+							FUN = function(x) mean(x, na.rm = T)))#
+		x.full <- as.numeric(data.lmer[[predictor]])#
+		maxT <- as.numeric(ave(data.lmer[[group]], data.lmer[[group]], FUN = function(x) length(x)))#
+		sig_u <- as.data.frame(VarCorr(model))[as.data.frame(VarCorr(model))$grp == group, "sdcor"]#
+		sig_e <- as.data.frame(VarCorr(model))[as.data.frame(VarCorr(model))$grp == "Residual", "sdcor"]#
+		theta <- 1 - sqrt(sig_e^2/(maxT*(sig_u)^2 + sig_e ^2))#
+		x.qdmean <- x.full - theta*data.lmer$xmean#
+	} #
+	# return qdemeaned x#
+	x.qdmean#
+}
+wkswork.lmer.new <- qdmean(model = model.lmer, predictor = "wks_work", group = "idcode", #
+									data = nlswork)
+qdmean <- function(model, predictor, group, data, dv) {#
+	if (!(class(model)[1] %in% c("plm", "lmerMod"))) { # if it's not plm/lmer#
+		stop("Model must be either plm or lmer")#
+	}#
+	if(class(predictor) != "character") {#
+		stop("Predictor variable must be supplied as a string")#
+	} #
+	if(class(group) != "character") {#
+		stop("Grouping variable must be supplied as a string")#
+	} 	#
+	if(class(model)[1] == "plm") { # if a plm model#
+		# generate data from the model#
+		data <- data.frame(model$model, index(model), summary(model)$ercomp$theta)#
+		names(data) <- c(names(model$model), names(index(model)), "theta")#
+		# average over the predictor, given the grouping variable (both user supplied)#
+		data$xmean <- as.numeric(ave(data[[predictor]], data[[group]],#
+			FUN = function(x) mean(x, na.rm = T)))#
+		x.full <- as.numeric(data[[predictor]])#
+		# generate x.qdmean to return#
+		x.qdmean <- x.full - data$theta*data$xmean#
+	} else if(class(model)[1] == "lmerMod") { # if it's a lmer model#
+		if(missing(data)) {#
+			stop("dataframe of observations to estimate model must be supplied with lmer")#
+		}#
+		if(missing(dv)) {#
+			stop("Dependent variable must be supplied (as a string) with lmer")#
+		}#
+		if(class(dv) != "character") {#
+			stop("Dependent variable must be supplied (as a string) with lmer")#
+		} #
+		data.lmer <- data.frame(get(group, data), get(dv, data))#
+		for(i in 2:length(names(fixef(model.lmer)))) {#
+			data.lmer <- data.frame(data.lmer, get(names(fixef(model.lmer))[i], data))#
+		}#
+		names(data.lmer) <- c(group, dv, names(fixef(model.lmer))[2:length(names(fixef(model.lmer)))])#
+		data.lmer <- na.omit(data.lmer)#
+		data.lmer$xmean <- as.numeric(ave(data.lmer[[predictor]], data.lmer[[group]],#
+							FUN = function(x) mean(x, na.rm = T)))#
+		x.full <- as.numeric(data.lmer[[predictor]])#
+		maxT <- as.numeric(ave(data.lmer[[group]], data.lmer[[group]], FUN = function(x) length(x)))#
+		sig_u <- as.data.frame(VarCorr(model))[as.data.frame(VarCorr(model))$grp == group, "sdcor"]#
+		sig_e <- as.data.frame(VarCorr(model))[as.data.frame(VarCorr(model))$grp == "Residual", "sdcor"]#
+		theta <- 1 - sqrt(sig_e^2/(maxT*(sig_u)^2 + sig_e ^2))#
+		x.qdmean <- x.full - theta*data.lmer$xmean#
+	} #
+	# return qdemeaned x#
+	x.qdmean#
+}
+qdmean <- function(model, predictor, group, data, dv) {#
+	if (!(class(model)[1] %in% c("plm", "lmerMod"))) { # if it's not plm/lmer#
+		stop("Model must be either plm or lmer")#
+	}#
+	if(class(predictor) != "character") {#
+		stop("Predictor variable must be supplied as a string")#
+	} #
+	if(class(group) != "character") {#
+		stop("Grouping variable must be supplied as a string")#
+	} 	#
+	if(class(model)[1] == "plm") { # if a plm model#
+		# generate data from the model#
+		data <- data.frame(model$model, index(model), summary(model)$ercomp$theta)#
+		names(data) <- c(names(model$model), names(index(model)), "theta")#
+		# average over the predictor, given the grouping variable (both user supplied)#
+		data$xmean <- as.numeric(ave(data[[predictor]], data[[group]],#
+			FUN = function(x) mean(x, na.rm = T)))#
+		x.full <- as.numeric(data[[predictor]])#
+		# generate x.qdmean to return#
+		x.qdmean <- x.full - data$theta*data$xmean#
+	} else if(class(model)[1] == "lmerMod") { # if it's a lmer model#
+		if(missing(data)) {#
+			stop("dataframe of observations to estimate model must be supplied with lmer")#
+		}#
+		if(missing(dv)) {#
+			stop("Dependent variable must b222e supplied (as a string) with lmer")#
+		}#
+		if(class(dv) != "character") {#
+			stop("Dependent variable must be supplied (as a string) with lmer")#
+		} #
+		data.lmer <- data.frame(get(group, data), get(dv, data))#
+		for(i in 2:length(names(fixef(model.lmer)))) {#
+			data.lmer <- data.frame(data.lmer, get(names(fixef(model.lmer))[i], data))#
+		}#
+		names(data.lmer) <- c(group, dv, names(fixef(model.lmer))[2:length(names(fixef(model.lmer)))])#
+		data.lmer <- na.omit(data.lmer)#
+		data.lmer$xmean <- as.numeric(ave(data.lmer[[predictor]], data.lmer[[group]],#
+							FUN = function(x) mean(x, na.rm = T)))#
+		x.full <- as.numeric(data.lmer[[predictor]])#
+		maxT <- as.numeric(ave(data.lmer[[group]], data.lmer[[group]], FUN = function(x) length(x)))#
+		sig_u <- as.data.frame(VarCorr(model))[as.data.frame(VarCorr(model))$grp == group, "sdcor"]#
+		sig_e <- as.data.frame(VarCorr(model))[as.data.frame(VarCorr(model))$grp == "Residual", "sdcor"]#
+		theta <- 1 - sqrt(sig_e^2/(maxT*(sig_u)^2 + sig_e ^2))#
+		x.qdmean <- x.full - theta*data.lmer$xmean#
+	} #
+	# return qdemeaned x#
+	x.qdmean#
+}
+wkswork.lmer.new <- qdmean(model = model.lmer, predictor = "wks_work", group = "idcode", #
+									data = nlswork)
+model <- plm(ln_wage ~ wks_work + union, index = c("idcode", "year"),#
+            data = nlswork,#
+            model = "random", random.method = "swar", effect = "individual")#
+#
+data.small.model <- data.frame(model$model, index(model), summary(model)$ercomp$theta)#
+names(data.small.model) <- c(names(model$model), names(index(model)), "theta")#
+#
+data.small.model$wks_work_mean <- ave(data.small.model$wks_work, data.small.model$idcode, FUN = function(x) mean(x, na.rm = T))#
+data.small.model$ln_wage_mean <- ave(data.small.model$ln_wage, data.small.model$idcode, FUN = function(x) mean(x, na.rm = T))#
+data.small.model$union_mean <- ave(data.small.model$union, data.small.model$idcode, FUN = function(x) mean(x, na.rm = T))#
+#
+data.small.model$wks_work_dmean <- data.small.model$wks_work - data.small.model$theta*data.small.model$wks_work_mean#
+data.small.model$ln_wage_dmean <- data.small.model$ln_wage - data.small.model$theta*data.small.model$ln_wage_mean#
+data.small.model$union_dmean <- data.small.model$union - data.small.model$theta*data.small.model$union_mean#
+data.small.model$const_dmean <- 1 - data.small.model$theta#
+#
+summary(lm(ln_wage_dmean ~ wks_work_dmean + union_dmean + const_dmean - 1, data = data.small.model))#
+summary(model) # These finally match.
+coef(lm(ln_wage_dmean ~ wks_work_dmean + union_dmean + const_dmean - 1, data = data.small.model))
+coef(model)
+dim(data.small.model)
+names(data.small.model)
+wkswork.plm.qd <- qdmean(model = model, predictor = "wks_work", group = "idcode")#
+lnwage.plm.qd <- qdmean(model = model, predictor = "ln_wage", group = "idcode")#
+union.plm.qd <- qdmean(model = model, predictor = "wks_work", group = "idcode")#
+const.qd <- 1 - data.small.model$theta#
+#
+test.data <- data.frame(#
+	wks.work = wkswork.plm.qd,#
+	lnwage = lnwage.plm.qd,#
+	union = union.plm.qd,#
+	const = const.qd#
+)
+head(test.data)
+summary(lm(lnwage ~ wks.work + union + const - 1, data = test.data))
+wkswork.plm.qd <- qdmean(model = model, predictor = "wks_work", group = "idcode")#
+lnwage.plm.qd <- qdmean(model = model, predictor = "ln_wage", group = "idcode")#
+union.plm.qd <- qdmean(model = model, predictor = "union", group = "idcode")#
+const.qd <- 1 - data.small.model$theta#
+#
+test.data <- data.frame(#
+	wks.work = wkswork.plm.qd,#
+	lnwage = lnwage.plm.qd,#
+	union = union.plm.qd,#
+	const = const.qd#
+)#
+#
+coef(lm(lnwage ~ wks.work + union + const - 1, data = test.data))
+summary(model) # These finally match.
+summary(model)$ercomp$theta
+coef(lm(lnwage ~ wks.work + union + const - 1, data = test.data))
+coef(model)
+model
+model <- plm(ln_wage ~ wks_work + union, index = c("idcode", "year"),#
+            data = nlswork,#
+            model = "random", random.method = "swar", effect = "individual")
+model
+c(coef(model)[2:3], coef(model)[1])
+coef(lm(lnwage ~ wks.work + union + const - 1, data = test.data))
+identical(c(coef(model)[2:3], coef(model)[1]), coef(lm(lnwage ~ wks.work + union + const - 1, data = test.data)))
+reg <- c(coef(model)[2:3], coef(model)[1])
+reg
+names(reg) <- c("one", "two", "three")
+reg
+model
+plm.coef <- c(coef(model)[2:3], coef(model)[1])#
+qd.coef <- coef(lm(lnwage ~ wks.work + union + const - 1, data = test.data))#
+names(plm.coef) <- names(qd.coef) <- c("wks_work", "union", "constant")
+plm.coef
+qd.coef
+identical(plm.coef, qd.coef)
+plm.coef <- round(c(coef(model)[2:3], coef(model)[1]), digits = 5)
+plm.coef
+plm.coef <- round(c(coef(model)[2:3], coef(model)[1]), digits = 5)#
+qd.coef <- round(coef(lm(lnwage ~ wks.work + union + const - 1, data = test.data)))#
+names(plm.coef) <- names(qd.coef) <- c("wks_work", "union", "constant")
+identical(plm.coef, qd.coef)
+plm.coef
+qd.coef
+qd.coef <- round(coef(lm(lnwage ~ wks.work + union + const - 1, data = test.data)), digits = 5)
+identical(plm.coef, qd.coef)
+qd.coef
+plm.coef <- round(c(coef(model)[2:3], coef(model)[1]), digits = 5)#
+qd.coef <- round(coef(lm(lnwage ~ wks.work + union + const - 1, data = test.data)), digits = 5)#
+names(plm.coef) <- names(qd.coef) <- c("wks_work", "union", "constant")
+plm.coef
+qd.coef
+identical(plm.coef, qd.coef)

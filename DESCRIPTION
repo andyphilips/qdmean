@@ -1,0 +1,21 @@
+Package: qdmean
+Title: Automatically quasi-demean regressors following a random effects regression
+Version: 0.1.1
+Authors@R: c(person("Soren", "Jordan", email = "sorenjordanpols@gmail.com", role = c("aut", "cre","cph")), person("Andrew Q.", "Philips", email = "andrew.philips@colorado.edu", role = c("aut")))
+Maintainer: Soren Jordan <sorenjordanpols@gmail.com>
+Description: qdmean is a package to automatically quasi-demean regressors following the estimation of a random effects model. Model estimation can be done with either plm or lmer. The function will automatically obtain theta and generate regressors, which are useful for post-estimation analysis.
+URL: https://github.com/andyphilips/REquasidemean/
+BugReports: https://github.com/andyphilips/REquasidemean/issues
+Imports: plm, lme4
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat (>= 2.0.0)
+Depends: R (>= 4.0.0)
+License: GPL (>=2)
+Encoding: UTF-8
+LazyData: true
+BuildManual: yes
+RoxygenNote: 7.1.1
+VignetteBuilder: knitr
+Config/testthat/edition: 2
