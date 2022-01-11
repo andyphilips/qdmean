@@ -28,4 +28,4 @@ Andrew Q. Philips, Department of Political Science, University of Colorado Bould
 ## References
 If you use `qdmean`, please cite:
 
-Jordan, Soren and Andrew Q. Philips. 2021. "Improving the interpretation of random effects regression results." Working Paper: 1-19.
+Jordan, Soren and Andrew Q. Philips. 2022. "Improving the interpretation of random effects regression results." _Political Studies Review_: 1-11.
