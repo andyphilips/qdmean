@@ -13,10 +13,10 @@ net install qdmean, from(https://github.com/andyphilips/qdmean/raw/main/)
 ## R
 `qdmean()` in `R` requires the estimation of a random effects model using either `plm` or `lmer`. Once estimated, pass the model, predictor variable (in quotes), and grouping variable (in quotes). If using `lmer`, additionally pass the dataset used to estimate the model and the dependent variable (in quotes). For help and examples, reference `?qdmean`
 
-To install `qdmean` in `R` direct from Github, use the `devtools` package:
+To install `qdmean` in `R` directly from Github, use the `devtools` package:
 ```
 library(devtools)
-install_github(''andyphilips/qdmean'')
+install_github("andyphilips/qdmean")
 library(qdmean) 
 ```
 
