@@ -102,7 +102,7 @@ qdmean <- function(model, predictor, group, data, dv) {
 	} 	
 	if(class(model)[1] == "plm") { # if a plm model
 		# generate data from the model
-		data <- data.frame(model$model, index(model), summary(model)$ercomp$theta)
+		data <- data.frame(model$model, index(model), ercomp(model.plm)$theta)
 		names(data) <- c(names(model$model), names(index(model)), "theta")
 		# average over the predictor, given the grouping variable (both user supplied)
 		data$xmean <- as.numeric(ave(data[[predictor]], data[[group]],
